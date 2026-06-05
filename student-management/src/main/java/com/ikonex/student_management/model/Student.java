@@ -1,5 +1,6 @@
 package com.ikonex.student_management.model;
 
+import com.ikonex.student_management.classstream.ClassStream;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -18,6 +19,11 @@ public class Student {
     @NotBlank(message = "Email is required")
     @Email(message = "Email should be valid")
     private String email;
+
+    //RELATIONSHIP ADDED
+    @ManyToOne
+    @JoinColumn(name = "class_stream_id")
+    private ClassStream classStream;
 
     public Student() {}
 
@@ -38,6 +44,10 @@ public class Student {
         return email;
     }
 
+    public ClassStream getClassStream() {
+        return classStream;
+    }
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -48,5 +58,9 @@ public class Student {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public void setClassStream(ClassStream classStream) {
+        this.classStream = classStream;
     }
 }

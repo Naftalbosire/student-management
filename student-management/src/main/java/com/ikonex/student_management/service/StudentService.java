@@ -1,5 +1,7 @@
 package com.ikonex.student_management.service;
 
+import com.ikonex.student_management.classstream.ClassStream;
+import com.ikonex.student_management.classstream.ClassStreamRepository;
 import com.ikonex.student_management.dto.StudentDTO;
 import com.ikonex.student_management.dto.StudentRequestDTO;
 import com.ikonex.student_management.exception.StudentNotFoundException;
@@ -15,28 +17,37 @@ import java.util.stream.Collectors;
 public class StudentService {
 
     private final StudentRepository repository;
+    private final ClassStreamRepository classStreamRepository;
 
-    public StudentService(StudentRepository repository) {
+    public StudentService(StudentRepository repository,
+                          ClassStreamRepository classStreamRepository) {
         this.repository = repository;
+        this.classStreamRepository = classStreamRepository;
     }
 
-    
+
     public StudentDTO createStudent(StudentRequestDTO dto) {
 
-        Student student = StudentMapper.toEntity(dto);
+        ClassStream classStream = classStreamRepository.findById(dto.getClassStreamId())
+                .orElseThrow(() ->
+                        new StudentNotFoundException("ClassStream not found with id: " + dto.getClassStreamId()));
+
+        Student student = StudentMapper.toEntity(dto, classStream);
 
         Student saved = repository.save(student);
 
         return StudentMapper.toDTO(saved);
     }
 
-  
+
     public List<StudentDTO> getAllStudents() {
         return repository.findAll()
                 .stream()
                 .map(StudentMapper::toDTO)
                 .collect(Collectors.toList());
-    
+    }
+
+
     public StudentDTO getStudentById(Long id) {
 
         Student student = repository.findById(id)
@@ -46,7 +57,7 @@ public class StudentService {
         return StudentMapper.toDTO(student);
     }
 
-    // (DTO to Entity to DTO)
+
     public StudentDTO updateStudent(Long id, StudentRequestDTO dto) {
 
         Student student = repository.findById(id)
@@ -56,12 +67,18 @@ public class StudentService {
         student.setName(dto.getName());
         student.setEmail(dto.getEmail());
 
+        ClassStream classStream = classStreamRepository.findById(dto.getClassStreamId())
+                .orElseThrow(() ->
+                        new StudentNotFoundException("ClassStream not found with id: " + dto.getClassStreamId()));
+
+        student.setClassStream(classStream);
+
         Student updated = repository.save(student);
 
         return StudentMapper.toDTO(updated);
     }
 
-    // (no DTO needed)
+
     public void deleteStudent(Long id) {
         repository.deleteById(id);
     }
